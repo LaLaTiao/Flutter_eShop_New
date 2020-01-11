@@ -1,41 +1,24 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_shop_new/common/my_api.dart';
-import 'package:flutter_shop_new/http/http_request.dart';
 import 'package:flutter_shop_new/page/main/model/hotgoods.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-class HomeHotRegion extends StatelessWidget {
+class HomeHotRegion extends StatefulWidget {
+  @override
+  HomeHotState createState() => HomeHotState();
+}
+
+class HomeHotState extends State<HomeHotRegion> {
+  List<HotGoods> hotGoods;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: FutureBuilder(
-        future: postRequest(API_HotGoodListUrl, data: {'page': 1}),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            Map<String, dynamic> data = json.decode(snapshot.data.toString());
-            HotGoodsModel model = HotGoodsModel.fromJson(data);
-            return _hotGood(model.data);
-          } else {
-            return Center(
-              child: SpinKitDoubleBounce(
-                color: Colors.blueAccent,
-              ),
-            );
-          }
-        },
+      child: Column(
+        children: <Widget>[
+          _buildTitle(),
+          _buildList(hotGoods),
+        ],
       ),
-    );
-  }
-
-  Widget _hotGood(List<HotGoods> hotgoods) {
-    return Column(
-      children: <Widget>[
-        _buildTitle(),
-        _buildList(hotgoods),
-      ],
     );
   }
 

@@ -26,16 +26,10 @@ class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
   var page = 1;
   List<HotGoods> hotGoods;
-  RefreshController _refreshController =
-      RefreshController(initialRefresh: false);
+  RefreshController _refreshController = RefreshController();
 
   @override
   bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    int _pageIndex = 0;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,23 +37,21 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       appBar: AppBar(title: Text('这是首页')),
       body: Container(
-        child: SmartRefresher(
-          enablePullDown: true,
-          enablePullUp: true,
-          controller: _refreshController,
-          footer: _footer(),
-          onLoading: _loadMoreHotRegionData,
-          child: FutureBuilder(
-            future: postRequest(API_HomePageUrl,
-                data: {'lon': '115.02932', 'lat': '35.76189'}),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                Map<String, dynamic> data =
-                    json.decode(snapshot.data.toString());
-                MainPageContentModel model =
-                    MainPageContentModel.fromJson(data);
+        child: FutureBuilder(
+          future: postRequest(API_HomePageUrl,
+              data: {'lon': '115.02932', 'lat': '35.76189'}),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              Map<String, dynamic> data = json.decode(snapshot.data.toString());
+              MainPageContentModel model = MainPageContentModel.fromJson(data);
 
-                return ListView(
+              return SmartRefresher(
+                enablePullUp: true,
+                enablePullDown: false,
+                controller: _refreshController,
+                footer: _footer(),
+                onLoading: _loadMoreHotRegionData,
+                child: ListView(
                   children: <Widget>[
                     SwiperView(swiperList: model.data.slides),
                     HomeGridView(category: model.data.category),
@@ -69,16 +61,16 @@ class _HomePageState extends State<HomePage>
                     HomeFloors(content: model.data),
                     HomeHotRegion(),
                   ],
-                );
-              } else {
-                return Center(
-                  child: SpinKitDoubleBounce(
-                    color: Colors.blueAccent,
-                  ),
-                );
-              }
-            },
-          ),
+                ),
+              );
+            } else {
+              return Center(
+                child: SpinKitDoubleBounce(
+                  color: Colors.blueAccent,
+                ),
+              );
+            }
+          },
         ),
       ),
     );
@@ -88,11 +80,15 @@ class _HomePageState extends State<HomePage>
     postRequest(API_HotGoodListUrl, data: {'page': page}).then((val) {
       Map<String, dynamic> map = json.decode(val.toString());
       HotGoodsModel model = HotGoodsModel.fromJson(map);
-      setState(() {
-        page++;
-        hotGoods.addAll(model.data);
-      });
-      _refreshController.loadComplete();
+      if (model.data.isNotEmpty) {
+        setState(() {
+          page++;
+//          hotGoods.addAll(model.data);
+        });
+        _refreshController.loadComplete();
+      } else {
+        _refreshController.loadNoData();
+      }
     });
   }
 
