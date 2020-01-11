@@ -8,6 +8,8 @@ import 'package:flutter_shop_new/http/http_request.dart';
 import 'package:flutter_shop_new/page/main/model/hotgoods.dart';
 import 'package:flutter_shop_new/page/main/view/home_floor.dart';
 import 'package:flutter_shop_new/page/main/view/home_shoper.dart';
+import 'package:flutter_shop_new/provider/HotGoodsProvider.dart';
+import 'package:flutter_shop_new/provider/ProviderStore.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -25,7 +27,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
   var page = 1;
-  List<HotGoods> hotGoods;
   RefreshController _refreshController = RefreshController();
 
   @override
@@ -83,8 +84,10 @@ class _HomePageState extends State<HomePage>
       if (model.data.isNotEmpty) {
         setState(() {
           page++;
-//          hotGoods.addAll(model.data);
         });
+        //TODO...为什么这里一定要传一个 listen:false.
+        ProviderStore.valueByListen<HotGoodsProvider>(context, false)
+            .addGoods(model.data);
         _refreshController.loadComplete();
       } else {
         _refreshController.loadNoData();

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_shop_new/page/main/model/hotgoods.dart';
+import 'package:flutter_shop_new/provider/HotGoodsProvider.dart';
+import 'package:provider/provider.dart';
 
-class HomeHotRegion extends StatefulWidget {
-  @override
-  HomeHotState createState() => HomeHotState();
-}
-
-class HomeHotState extends State<HomeHotRegion> {
-  List<HotGoods> hotGoods;
+class HomeHotRegion extends StatelessWidget {
+  List<Widget> listWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +13,7 @@ class HomeHotState extends State<HomeHotRegion> {
       child: Column(
         children: <Widget>[
           _buildTitle(),
-          _buildList(hotGoods),
+          _buildList(context),
         ],
       ),
     );
@@ -37,23 +34,35 @@ class HomeHotState extends State<HomeHotRegion> {
     );
   }
 
-  Widget _buildList(List<HotGoods> hotgoods) {
-    List<Widget> listWidget = hotgoods.map((data) {
-      return InkWell(
-        onTap: _onImageClick(data.goodsId),
-        child: Container(
-          width: ScreenUtil().setFullWidth(1 / 2) - ScreenUtil().setWidth(4),
-          decoration:
-              BoxDecoration(border: Border.all(width: 1.0, color: Colors.grey)),
-          child: _buildItem(data),
-        ),
-      );
-    }).toList();
+  Widget _buildList(BuildContext context) {
+    listWidget = _getGoods(context);
 
-    return Wrap(
-      spacing: 2,
-      children: listWidget,
-    );
+    if (listWidget != null && listWidget.isNotEmpty) {
+      return Wrap(
+        spacing: 2,
+        children: listWidget,
+      );
+    } else {
+      return Text("");
+    }
+  }
+
+  List<Widget> _getGoods(BuildContext context) {
+    List<HotGoods> data = Provider.of<HotGoodsProvider>(context).hotGoods;
+    if (data != null && data.isNotEmpty) {
+      return data.map((data) {
+        return InkWell(
+          onTap: _onImageClick(data.goodsId),
+          child: Container(
+            width: ScreenUtil().setFullWidth(1 / 2) - ScreenUtil().setWidth(4),
+            decoration: BoxDecoration(
+                border: Border.all(width: 1.0, color: Colors.grey)),
+            child: _buildItem(data),
+          ),
+        );
+      }).toList();
+    }
+    return null;
   }
 
   Widget _buildItem(HotGoods goods) {

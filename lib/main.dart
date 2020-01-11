@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_shop_new/provider/ProviderStore.dart';
 
 import 'main_page.dart';
 
@@ -19,13 +20,15 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: MaterialApp(
-        title: 'Flutter',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(primaryColor: Colors.lightBlue),
-        home: MainPage(),
-      ),
-    );
+    return ProviderStore.init(
+        context: context,
+        child: Container(
+          child: MaterialApp(
+            title: 'Flutter',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(primaryColor: Colors.lightBlue),
+            home: MainPage(),
+          ),
+        ));
   }
 }
