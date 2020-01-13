@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_shop_new/common/my_api.dart';
 import 'package:flutter_shop_new/http/http_request.dart';
-import 'package:flutter_shop_new/page/main/model/hotgoods.dart';
 import 'package:flutter_shop_new/page/main/view/home_floor.dart';
 import 'package:flutter_shop_new/page/main/view/home_shoper.dart';
 import 'package:flutter_shop_new/provider/HotGoodsProvider.dart';
@@ -26,7 +25,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
-  var page = 1;
   RefreshController _refreshController = RefreshController();
 
   @override
@@ -48,10 +46,9 @@ class _HomePageState extends State<HomePage>
 
               return SmartRefresher(
                 enablePullUp: true,
-                enablePullDown: false,
                 controller: _refreshController,
-                footer: _footer(),
-                onLoading: _loadMoreHotRegionData,
+                footer: ClassicFooter(),
+                onLoading: _loadMore,
                 child: ListView(
                   children: <Widget>[
                     SwiperView(swiperList: model.data.slides),
@@ -77,44 +74,21 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  _loadMoreHotRegionData() async {
-    postRequest(API_HotGoodListUrl, data: {'page': page}).then((val) {
-      Map<String, dynamic> map = json.decode(val.toString());
-      HotGoodsModel model = HotGoodsModel.fromJson(map);
-      if (model.data.isNotEmpty) {
-        setState(() {
-          page++;
-        });
-        //TODO...为什么这里一定要传一个 listen:false.
-        ProviderStore.valueByListen<HotGoodsProvider>(context, false)
-            .addGoods(model.data);
+  _loadMore() async {
+    HotGoodsProvider provider =
+        ProviderStore.valueByListen<HotGoodsProvider>(context, false);
+    await provider.loadMoreHotRegionData();
+    int state = provider.refreshState;
+    switch (state) {
+      case 1:
         _refreshController.loadComplete();
-      } else {
+        break;
+      case -1:
+        _refreshController.loadFailed();
+        break;
+      case 2:
         _refreshController.loadNoData();
-      }
-    });
-  }
-
-  Widget _footer() {
-    return CustomFooter(
-      builder: (BuildContext context, LoadStatus mode) {
-        Widget body;
-        if (mode == LoadStatus.idle) {
-          body = Text("上拉加载");
-        } else if (mode == LoadStatus.loading) {
-          body = CupertinoActivityIndicator();
-        } else if (mode == LoadStatus.failed) {
-          body = Text("加载失败！点击重试！");
-        } else if (mode == LoadStatus.canLoading) {
-          body = Text("松手,加载更多!");
-        } else {
-          body = Text("没有更多数据了!");
-        }
-        return Container(
-          height: 55.0,
-          child: Center(child: body),
-        );
-      },
-    );
+        break;
+    }
   }
 }
